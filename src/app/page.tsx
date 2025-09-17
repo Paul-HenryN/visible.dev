@@ -1,9 +1,18 @@
-import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <div>
-      Hello, <Button>visible.dev</Button>
-    </div>
-  );
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!data.user) {
+    redirect("/login");
+  }
+
+  return <div>Welcome, {data.user.email}</div>;
 }
