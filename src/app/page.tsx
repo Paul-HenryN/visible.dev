@@ -1,18 +1,18 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { RepoCard } from "@/components/repo-card";
+import { getRepos } from "@/lib/github/client";
 
 export default async function Home() {
-  const supabase = await createClient();
+  const { data: repos, error: reposError } = await getRepos();
 
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
+  if (reposError) {
+    return <div className="text-red-500">Error loading repositories</div>;
   }
 
-  if (!data.user) {
-    redirect("/login");
-  }
-
-  return <div>Welcome, {data.user.email}</div>;
+  return (
+    <div className="container mx-auto grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
+      {repos.map((repo) => (
+        <RepoCard key={repo.id} repo={repo} />
+      ))}
+    </div>
+  );
 }
