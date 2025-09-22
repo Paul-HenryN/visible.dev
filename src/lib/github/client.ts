@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { getGithubToken } from "../supabase/auth";
-import { GhRepository, User } from "../types";
+import { User } from "../types";
+import { GhRepoSchema, GhRepository } from "./schemas";
 
 export async function createGithubClient() {
   const token = await getGithubToken();
@@ -53,21 +54,9 @@ export async function getRepos(): Promise<GetReposResult> {
       sort: "updated",
     });
 
-    return {
-      data: repos.data.map((repo) => ({
-        id: repo.id,
-        name: repo.name,
-        fullName: repo.full_name,
-        private: repo.private,
-        htmlUrl: repo.html_url,
-        description: repo.description,
-        forksCount: repo.forks_count,
-        stargazersCount: repo.stargazers_count,
-        watchersCount: repo.watchers_count,
-        language: repo.language,
-      })),
-      error: null,
-    };
+    const parsed = GhRepoSchema.array().parse(repos.data);
+
+    return { data: parsed, error: null };
   } catch (e) {
     return {
       data: null,
